@@ -1,3 +1,12 @@
-from django.shortcuts import render
+from rest_framework import serializers
+from .models import Stats
+from rest_framework import viewsets
 
-# Create your views here.
+class StatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stats
+        fields = ('id', 'title', 'description', 'created_at')
+
+class StatViewSet(viewsets.ModelViewSet):
+    queryset = Stats.objects.all()
+    serializer_class = StatSerializer
