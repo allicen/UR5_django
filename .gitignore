@@ -5,3 +5,4 @@ lib
 
 *.pyc
 *.cpython-310.pyc
+stats/migrations/

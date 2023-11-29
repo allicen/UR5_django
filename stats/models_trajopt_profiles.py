@@ -2,10 +2,10 @@ from django.db import models
 
 
 class ContactTestType(models.TextChoices):
-  FIRST = 0     # Возврат при первом контакте для любой пары объектов
-  CLOSEST = 1   # Возвращает глобальный минимум для пары объектов
-  ALL = 2       # Возвращает все контакты для пары объектов
-  LIMITED = 3   # Возвращает ограниченный набор контактов для пары объектов
+  FIRST = 0,     # Возврат при первом контакте для любой пары объектов
+  CLOSEST = 1,   # Возвращает глобальный минимум для пары объектов
+  ALL = 2,       # Возвращает все контакты для пары объектов
+  LIMITED = 3    # Возвращает ограниченный набор контактов для пары объектов
 
 
 class TermType(models.TextChoices):
@@ -41,10 +41,10 @@ class CollisionCostConfig(models.Model):
 
     # Расстояние за пределами buffer_margin, в котором будет оцениваться оптимизация коллизий.
     # По умолчанию это значение равно 0 (фактически отключено) для учета затрат на коллизии.
-    safety_margin_buffer = models.FloatField(0.0)
+    safety_margin_buffer = models.FloatField(default=0.0)
 
     # Коэффициент столкновения / вес
-    coeff = models.FloatField(20)
+    coeff = models.FloatField(default=20)
 
     class Meta:
         managed = True
@@ -69,7 +69,7 @@ class CollisionConstraintConfig(models.Model):
     safety_margin_buffer = models.FloatField(default=0.05)
 
     # Коэффициент столкновения/вес
-    coeff = models.FloatField(20)
+    coeff = models.FloatField(default=20)
 
     class Meta:
         managed = True
@@ -78,45 +78,45 @@ class CollisionConstraintConfig(models.Model):
 
 class BasicTrustRegionSQPParameters(models.Model):
 
-  improve_ratio_threshold = models.FloatField()  # минимальное соотношение true_improve/approx_improve
-                                                 # принять шаг
-  min_trust_box_size = models.FloatField()       # если область доверия станет еще меньше, выйдите и
-                                                 # отчет о сходимости
-  min_approx_improve = models.FloatField()       # если модель улучшается меньше этого, выйдите и
-                                                 # отчет о сходимости
-  min_approx_improve_frac = models.FloatField()  # если модель улучшается меньше этого, выйдите и
-                                                 # отчет о сходимости
-  max_iter = models.FloatField()                 # Максимальное количество итераций
-  trust_shrink_ratio = models.FloatField()       # если улучшение меньше, чем
+  improve_ratio_threshold = models.FloatField(null=True)  # минимальное соотношение true_improve/approx_improve
+                                                          # принять шаг
+  min_trust_box_size = models.FloatField(null=True)       # если область доверия станет еще меньше, выйдите и
+                                                          # отчет о сходимости
+  min_approx_improve = models.FloatField(null=True)       # если модель улучшается меньше этого, выйдите и
+                                                          # отчет о сходимости
+  min_approx_improve_frac = models.FloatField(null=True)  # если модель улучшается меньше этого, выйдите и
+                                                          # отчет о сходимости
+  max_iter = models.FloatField(null=True)                 # Максимальное количество итераций
+  trust_shrink_ratio = models.FloatField(null=True)       # если улучшение меньше, чем
   # improve_ratio_threshold, сократите область доверия за счет
   # это соотношения
-  trust_expand_ratio = models.FloatField()  # если улучшение меньше, чем
-                                            # improve_ratio_threshold, сократите область доверия за счет
-                                            # это соотношения
-  cnt_tolerance = models.FloatField()       # после сходимости штрафной подзадачи, если
+  trust_expand_ratio = models.FloatField(null=True)  # если улучшение меньше, чем
+                                                     # improve_ratio_threshold, сократите область доверия за счет
+                                                     # это соотношения
+  cnt_tolerance = models.FloatField(null=True)       # после сходимости штрафной подзадачи, если
   # нарушение ограничений - это нечто меньшее, чем это, мы закончили
 
   # Максимальное количество раз, в которое будет увеличена стоимость ограничений
-  max_merit_coeff_increases = models.FloatField()
+  max_merit_coeff_increases = models.FloatField(null=True)
   # Максимальное количество раз, когда QP-решатель может выйти из строя, прежде чем оптимизация будет прервана
-  max_qp_solver_failures = models.IntegerField()
+  max_qp_solver_failures = models.IntegerField(null=True)
 
-  merit_coeff_increase_ratio = models.FloatField()  # соотношение, при котором мы увеличиваем коэффициент каждый раз
+  merit_coeff_increase_ratio = models.FloatField(null=True)  # соотношение, при котором мы увеличиваем коэффициент каждый раз
 
   # Максимальное время в секундах, в течение которого будет запущен оптимизатор
-  max_time = models.FloatField()
+  max_time = models.FloatField(null=True)
 
   # Начальный коэффициент, который используется для масштабирования ограничений. Общая стоимость ограничений равна
   # constant_value * coeff * merit_coeff
-  initial_merit_error_coeff = models.FloatField()
+  initial_merit_error_coeff = models.FloatField(null=True)
 
   # Если значение true, коэффициенты заслуг будут завышены только для тех ограничений, которые не сработали.
   # Это может помочь, когда ограничений много
-  inflate_constraints_individually = models.BooleanField()
-  trust_box_size = models.BooleanField()   # текущий размер доверительного региона (по компонентам)
+  inflate_constraints_individually = models.BooleanField(null=True)
+  trust_box_size = models.BooleanField(null=True)       # текущий размер доверительного региона (по компонентам)
 
-  log_results = models.BooleanField()     # Заносите результаты в файл
-  log_dir = models.CharField(max_length=255) # Каталог для хранения результатов журнала (по умолчанию: /tmp)
+  log_results = models.BooleanField(null=True)          # Заносите результаты в файл
+  log_dir = models.CharField(max_length=255, null=True) # Каталог для хранения результатов журнала (по умолчанию: /tmp)
 
   class Meta:
       managed = True
@@ -126,9 +126,9 @@ class BasicTrustRegionSQPParameters(models.Model):
 
 
 ##############################################################
-#
+#                                                            #
 #                  ПРОФИЛИ ДЛЯ ПЛАНИРОВАНИЯ                  #
-#
+#                                                            #
 ##############################################################
 
 class TrajOptDefaultCompositeProfile(models.Model):
@@ -182,10 +182,10 @@ class TrajOptDefaultCompositeProfile(models.Model):
     longest_valid_segment_length = models.FloatField(default=0.1)
 
     # Расстояния, стоящие за столкновение специальных звеньев
-    special_collision_cost = models.JSONField(default=None)
+    special_collision_cost = models.JSONField(default=None, null=True)
 
     # Расстояния, ограничивающие столкновение специальных звеньев
-    special_collision_constraint = models.JSONField(default=None)
+    special_collision_constraint = models.JSONField(default=None, null=True)
 
     class Meta:
         managed = True
@@ -216,7 +216,7 @@ class TrajOptDefaultSolverProfile(models.Model):
     convex_solver = models.CharField(choices=ModelType.choices, default=ModelType.OSQP, max_length=255)
 
     # Конфигурация convex solver для использования, если NULL используются настройки по умолчанию
-    convex_solver_config = models.TextField(max_length=10000, default=None)
+    convex_solver_config = models.TextField(max_length=10000, default=None, null=True)
 
     # Параметры оптимизации
     opt_info = models.ForeignKey(to=BasicTrustRegionSQPParameters, on_delete=models.CASCADE)

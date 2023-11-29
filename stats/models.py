@@ -8,17 +8,14 @@ class TrajOpt(models.Model):
     profile_name = models.CharField(max_length=255)
 
     # Профили планировщика
-    default_composite_profile = models.ManyToManyField('stats.TrajOptDefaultCompositeProfile') #ArrayField(models.ForeignKey(TrajOptDefaultCompositeProfile, on_delete=models.CASCADE))
-    default_plan_profile = models.ManyToManyField('stats.TrajOptDefaultPlanProfile') # ArrayField(models.ForeignKey(TrajOptDefaultPlanProfile, on_delete=models.CASCADE))
-    default_solver_profile = models.ManyToManyField('stats.TrajOptDefaultSolverProfile') # ArrayField(models.ForeignKey(TrajOptDefaultSolverProfile, on_delete=models.CASCADE))
-
-    models.ManyToManyField('my_app.Authors',
-                           related_name='authored_books')
+    default_composite_profile = models.ManyToManyField('stats.TrajOptDefaultCompositeProfile', db_table='trajopt_to_trajopt_default_composite_profile')
+    default_plan_profile = models.ManyToManyField('stats.TrajOptDefaultPlanProfile', db_table='trajopt_to_trajopt_default_plan_profile')
+    default_solver_profile = models.ManyToManyField('stats.TrajOptDefaultSolverProfile', db_table='trajopt_to_trajopt_default_solver_profile')
 
     task_name = models.CharField(max_length=255)
 
     # Программа, которая подается в планировщик для выполнения
-    program = models.JSONField()
+    program = models.JSONField(default={'data': []}, null=True)
 
     class Meta:
         managed = True
@@ -56,7 +53,7 @@ class Stats(models.Model):
     obstacle_group_id = models.IntegerField()
 
     # Любая дополнительная информация
-    note = models.CharField(max_length=255)
+    note = models.CharField(max_length=255, null=True)
 
     trajOpt = models.ForeignKey(to=TrajOpt, on_delete=models.CASCADE)
 
