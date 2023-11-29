@@ -4,18 +4,6 @@ from rest_framework import viewsets
 from stats.models_trajopt_profiles import *
 import json
 
-
-class StatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Stats
-        fields = '__all__'
-
-
-class StatViewSet(viewsets.ModelViewSet):
-    queryset = Stats.objects.all()
-    serializer_class = StatSerializer
-
-
 class CollisionCostConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollisionCostConfig
@@ -70,3 +58,16 @@ class TrajOptSerializer(serializers.ModelSerializer):
 class TrajOptViewSet(viewsets.ModelViewSet):
     queryset = TrajOpt.objects.all()
     serializer_class = TrajOptSerializer
+
+
+class StatSerializer(serializers.ModelSerializer):
+    trajopt = TrajOptSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Stats
+        fields = '__all__'
+
+
+class StatViewSet(viewsets.ModelViewSet):
+    queryset = Stats.objects.all()
+    serializer_class = StatSerializer

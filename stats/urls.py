@@ -4,7 +4,7 @@ from .views import StatViewSet, TrajOptViewSet
 
 router = DefaultRouter()
 router.register(r'stats', StatViewSet)
-router.register(r'trajopt', TrajOptViewSet)
+router.register(r'trajopt/get', TrajOptViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
