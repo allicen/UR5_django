@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
 
 
 class ContactTestType(models.TextChoices):
@@ -8,6 +7,18 @@ class ContactTestType(models.TextChoices):
   ALL = 2       # Возвращает все контакты для пары объектов
   LIMITED = 3   # Возвращает ограниченный набор контактов для пары объектов
 
+
+class TermType(models.TextChoices):
+  TT_COST = 0x1,      # 00000 0001
+  TT_CNT = 0x2,       # 0000 0010
+  TT_USE_TIME = 0x4   # 0000 0100
+
+class ModelType(models.TextChoices):
+    GUROBI = 'GUROBI',
+    OSQP = 'OSQP',
+    QPOASES = 'QPOASES',
+    BPMPD = 'BPMPD',
+    AUTO_SOLVER = 'AUTO_SOLVER'
 
 class CollisionEvaluatorType(models.TextChoices):
     SINGLE_TIMESTEP = 0,
@@ -35,6 +46,10 @@ class CollisionCostConfig(models.Model):
     # Коэффициент столкновения / вес
     coeff = models.FloatField(20)
 
+    class Meta:
+        managed = True
+        db_table = 'trajopt_collision_cost_config'
+
 
 class CollisionConstraintConfig(models.Model):
     # Если значение true, к проблеме будет добавлено условие стоимости столкновения. По умолчанию: true
@@ -56,6 +71,65 @@ class CollisionConstraintConfig(models.Model):
     # Коэффициент столкновения/вес
     coeff = models.FloatField(20)
 
+    class Meta:
+        managed = True
+        db_table = 'trajopt_collision_constraint_config'
+
+
+class BasicTrustRegionSQPParameters(models.Model):
+
+  improve_ratio_threshold = models.FloatField()  # минимальное соотношение true_improve/approx_improve
+                                                 # принять шаг
+  min_trust_box_size = models.FloatField()       # если область доверия станет еще меньше, выйдите и
+                                                 # отчет о сходимости
+  min_approx_improve = models.FloatField()       # если модель улучшается меньше этого, выйдите и
+                                                 # отчет о сходимости
+  min_approx_improve_frac = models.FloatField()  # если модель улучшается меньше этого, выйдите и
+                                                 # отчет о сходимости
+  max_iter = models.FloatField()                 # Максимальное количество итераций
+  trust_shrink_ratio = models.FloatField()       # если улучшение меньше, чем
+  # improve_ratio_threshold, сократите область доверия за счет
+  # это соотношения
+  trust_expand_ratio = models.FloatField()  # если улучшение меньше, чем
+                                            # improve_ratio_threshold, сократите область доверия за счет
+                                            # это соотношения
+  cnt_tolerance = models.FloatField()       # после сходимости штрафной подзадачи, если
+  # нарушение ограничений - это нечто меньшее, чем это, мы закончили
+
+  # Максимальное количество раз, в которое будет увеличена стоимость ограничений
+  max_merit_coeff_increases = models.FloatField()
+  # Максимальное количество раз, когда QP-решатель может выйти из строя, прежде чем оптимизация будет прервана
+  max_qp_solver_failures = models.IntegerField()
+
+  merit_coeff_increase_ratio = models.FloatField()  # соотношение, при котором мы увеличиваем коэффициент каждый раз
+
+  # Максимальное время в секундах, в течение которого будет запущен оптимизатор
+  max_time = models.FloatField()
+
+  # Начальный коэффициент, который используется для масштабирования ограничений. Общая стоимость ограничений равна
+  # constant_value * coeff * merit_coeff
+  initial_merit_error_coeff = models.FloatField()
+
+  # Если значение true, коэффициенты заслуг будут завышены только для тех ограничений, которые не сработали.
+  # Это может помочь, когда ограничений много
+  inflate_constraints_individually = models.BooleanField()
+  trust_box_size = models.BooleanField()   # текущий размер доверительного региона (по компонентам)
+
+  log_results = models.BooleanField()     # Заносите результаты в файл
+  log_dir = models.CharField(max_length=255) # Каталог для хранения результатов журнала (по умолчанию: /tmp)
+
+  class Meta:
+      managed = True
+      db_table = 'trajopt_basic_trust_region_sqp_parameters'
+
+
+
+
+##############################################################
+#
+#                  ПРОФИЛИ ДЛЯ ПЛАНИРОВАНИЯ                  #
+#
+##############################################################
 
 class TrajOptDefaultCompositeProfile(models.Model):
     # Тип контактного теста, который необходимо выполнить: FIRST, CLOSEST, ALL
@@ -71,19 +145,23 @@ class TrajOptDefaultCompositeProfile(models.Model):
     smooth_velocities = models.BooleanField(default=True)
 
     # Это значение по умолчанию для всех соединений, но позволяет вам взвешивать различные соединения
-    velocity_coeff = ArrayField( models.CharField(blank=True, max_length=255))
+    # velocity_coeff = ArrayField(models.CharField(blank=True, max_length=255))
+    # velocity_coeff = ArrayField(models.FloatField(), blank=True)
+    velocity_coeff = models.JSONField(default={"data": []})
 
     # Если значение true, то для всех временных шагов будет применена общая стоимость ускорения с целевым значением 0 По умолчанию: false
     smooth_accelerations = models.BooleanField(default=True)
 
     # Это значение по умолчанию для всех соединений, но позволяет вам взвешивать различные соединения
-    acceleration_coeff = ArrayField( models.CharField(blank=True, max_length=255))
+    # acceleration_coeff = ArrayField(models.FloatField(), blank=True)
+    acceleration_coeff = models.JSONField(default={"data": []})
 
     # Если значение true, то для всех временных шагов будет применена стоимость совместного рывка с целевым значением 0 По умолчанию: false
     smooth_jerks = models.BooleanField(default=True)
 
     # Это значение по умолчанию для всех соединений, но позволяет вам взвешивать различные соединения
-    jerk_coeff = ArrayField( models.CharField(blank=True, max_length=255))
+    # jerk_coeff = ArrayField(models.FloatField(), blank=True)
+    jerk_coeff = models.JSONField(default={"data": []})
 
     # Если true, применяется стоимость, позволяющая избежать кинематических особенностей
     avoid_singularity = models.BooleanField(default=False)
@@ -94,13 +172,11 @@ class TrajOptDefaultCompositeProfile(models.Model):
     # Установите разрешение, при котором необходимо проверить действительность состояния для того, чтобы движение между двумя состояниями было осуществлено
     # будет считаться действительным при последующей проверке траектории, возвращаемой trajopt
     # Разрешение равно longest_valid_segment_fraction * state_space.getMaximumExtent()
-    #
     # Примечание: Планировщик придерживается консервативного подхода либо longest_valid_segment_fraction или longest_valid_segment_length.
     longest_valid_segment_fraction = models.FloatField(default=0.01)  # 1%
 
     # Установите разрешение, при котором необходимо проверить действительность состояния для того, чтобы движение между двумя состояниями было осуществлено
     # чтобы считаться действительным. Если If norm(state1 - state0) > longest_valid_segment_length.
-    #
     # Примечание: Это преобразуется в longest_valid_segment_fraction.
     #       longest_valid_segment_fraction = longest_valid_segment_length / state_space.getMaximumExtent()
     longest_valid_segment_length = models.FloatField(default=0.1)
@@ -111,7 +187,44 @@ class TrajOptDefaultCompositeProfile(models.Model):
     # Расстояния, ограничивающие столкновение специальных звеньев
     special_collision_constraint = models.JSONField(default=None)
 
+    class Meta:
+        managed = True
+        db_table = 'trajopt_default_composite_profile'
+
 
 
 class TrajOptDefaultPlanProfile(models.Model):
-    pass
+    # cartesian_coeff = ArrayField(models.IntegerField(), default=[1, 1, 5], blank=True)
+    cartesian_coeff = models.JSONField(default={"data": [1, 1, 5]})
+
+    # joint_coeff = ArrayField(models.IntegerField(), default=[1, 1, 5], blank=True)
+    joint_coeff = models.JSONField(default={"data": [1, 1, 5]})
+
+    term_type = models.CharField(choices=TermType.choices, default=TermType.TT_CNT, max_length=255)
+
+    # не перенесена переменная:
+    # Функция ошибки, которая устанавливается в качестве ограничения для каждого временного шага.
+    # constraint_error_functions
+
+    class Meta:
+        managed = True
+        db_table = 'trajopt_default_plan_profile'
+
+
+class TrajOptDefaultSolverProfile(models.Model):
+    # Используемый выпуклый решатель
+    convex_solver = models.CharField(choices=ModelType.choices, default=ModelType.OSQP, max_length=255)
+
+    # Конфигурация convex solver для использования, если NULL используются настройки по умолчанию
+    convex_solver_config = models.TextField(max_length=10000, default=None)
+
+    # Параметры оптимизации
+    opt_info = models.ForeignKey(to=BasicTrustRegionSQPParameters, on_delete=models.CASCADE)
+
+    # Не перенесена переменная:
+    # callbacks
+
+    class Meta:
+        managed = True
+        db_table = 'trajopt_default_solver_profile'
+
