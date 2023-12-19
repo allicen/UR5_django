@@ -20,11 +20,11 @@
 
 1) Для хранения статистики:
 
-![alt text](img/db_stat.png)
+<img src="img/db_stat.png" alt="drawing" width="400"/>
 
 2) Для всего остального:
 
-![alt text](img/db.png)
+<img src="img/db.png" alt="drawing" width="400"/>
 
 
 #### Команды для работы с проектом
