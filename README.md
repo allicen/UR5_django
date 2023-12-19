@@ -5,6 +5,26 @@
 
 Необходимо запустить UR5_TrajOpt (ROS-проект для работы с роботом-манипулятором) и UR5_Trajopt_UI (Web-интерфейс).
 
+Видео работы приложения: https://www.youtube.com/watch?v=5Q86EpBCiL4
+
+Структура всего проекта:
+- ROS Noetic (C++, Python);
+- Spring Boot (Java);
+- Angular (Typescript);
+- Django (Python);
+- База данных Mysql (2 базы).
+
+Для разворачивания ROS-окружения используется Docker.
+
+**Схема БД**
+
+1) Для хранения статистики:
+
+![alt text](img/db_stat.png)
+
+2) Для всего остального:
+
+![alt text](img/db.png)
 
 
 #### Команды для работы с проектом
